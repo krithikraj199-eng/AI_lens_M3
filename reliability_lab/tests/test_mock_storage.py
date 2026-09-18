@@ -3,7 +3,6 @@
 Test P0-T08.
 """
 
-import pytest
 
 
 def test_p0_t08_mock_storage_operations():

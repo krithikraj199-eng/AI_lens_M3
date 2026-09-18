@@ -3,7 +3,6 @@
 Tests P0-T01 through P0-T06.
 """
 
-import pytest
 from dataclasses import is_dataclass, fields
 
 

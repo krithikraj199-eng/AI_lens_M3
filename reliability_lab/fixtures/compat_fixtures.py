@@ -15,6 +15,8 @@ from typing import Any, Optional
 @dataclass
 class TestRunFixture:
     """Test compatibility fixture for the shared Member 2 Run contract."""
+    __test__ = False  # Prevent pytest from collecting as a test class
+
     run_id: str
     agent_version: str
     prompt_version: str
@@ -31,6 +33,8 @@ class TestRunFixture:
 @dataclass
 class TestIncidentFixture:
     """Test compatibility fixture for the shared Member 2 Incident contract."""
+    __test__ = False  # Prevent pytest from collecting as a test class
+
     incident_id: str
     run_id: str
     failure_type: str

@@ -4,7 +4,6 @@ Tests P0-T09 and P0-T10.
 """
 
 import sys
-import pytest
 
 
 def test_p0_t09_reliability_lab_isolation():

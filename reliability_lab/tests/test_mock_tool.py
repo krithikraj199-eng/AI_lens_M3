@@ -3,7 +3,6 @@
 Test P0-T07.
 """
 
-import pytest
 
 
 def test_p0_t07_mock_tool_deterministic_execution():
