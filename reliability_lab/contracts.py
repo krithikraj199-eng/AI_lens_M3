@@ -7,7 +7,51 @@ paired evaluations, regression tests, and regression results.
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Protocol, Union, runtime_checkable
+import uuid
+
+
+@runtime_checkable
+class Storage(Protocol):
+    """Minimal storage abstraction required for Reliability Lab persistence."""
+
+    def save(self, key: str, item: Any) -> None:
+        """Save or update an item by key."""
+        ...
+
+    def get(self, key: str) -> Optional[Any]:
+        """Retrieve an item by key."""
+        ...
+
+    def list(self) -> list[Any]:
+        """List all stored items."""
+        ...
+
+
+@dataclass
+class ExpectedBehavior:
+    """Structured assertions for deterministic task validation."""
+    description: Optional[str] = None
+    expected_outcome: Optional[str] = None  # "SUCCESS" | "FALLBACK"
+    fallback_required: Optional[bool] = None
+    max_retries: Optional[int] = None
+    forbidden_failures: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_val(cls, val: Any) -> "ExpectedBehavior":
+        if isinstance(val, cls):
+            return val
+        if isinstance(val, dict):
+            return cls(
+                description=val.get("description"),
+                expected_outcome=val.get("expected_outcome"),
+                fallback_required=val.get("fallback_required"),
+                max_retries=val.get("max_retries"),
+                forbidden_failures=list(val.get("forbidden_failures") or []),
+            )
+        if isinstance(val, str):
+            return cls(description=val)
+        return cls()
 
 
 class FailureMode(str, Enum):
@@ -40,7 +84,7 @@ class ReplayRecord:
     failure_mode: FailureMode | str
     tool_calls: list[dict[str, Any]]
     mocked_responses: dict[str, Any]
-    expected_behavior: str
+    expected_behavior: Union[ExpectedBehavior, str]
     original_incident_id: Optional[str] = None
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -54,6 +98,7 @@ class EvaluationPair:
     after_metrics: dict[str, Any]
     task_result: str
     regression_result: str
+    evaluation_id: str = field(default_factory=lambda: f"eval-{uuid.uuid4().hex[:12]}")
     evaluated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 

@@ -6,13 +6,10 @@ venv/
 __pycache__/
 *.py[cod]
 *$py.class
-
 # Pytest cache
 .pytest_cache/
-
 # Environment files & secrets
 .env
 .env.*
-
 # Logs
 *.log
