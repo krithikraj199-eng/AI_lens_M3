@@ -5,12 +5,15 @@ Provides BeforeAfterEvaluator, evaluate_pair, and execute_evaluation for Member 
 
 from reliability_lab.evaluation.evaluator import (
     BeforeAfterEvaluator,
+    build_before_after_panel,
     evaluate_pair,
     execute_evaluation,
 )
 
 __all__ = [
     "BeforeAfterEvaluator",
+    "build_before_after_panel",
     "evaluate_pair",
     "execute_evaluation",
 ]
+

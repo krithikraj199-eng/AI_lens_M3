@@ -604,6 +604,30 @@ def execute_evaluation(
                 "after": eval_pair.after_metrics,
                 "deltas": deltas,
             },
+            "panel": {
+                "before_run_id": eval_pair.before_run_id,
+                "after_run_id": eval_pair.after_run_id,
+                "tool_calls": {
+                    "before": eval_pair.before_metrics.get("tool_calls"),
+                    "after": eval_pair.after_metrics.get("tool_calls"),
+                    "delta": deltas.get("tool_calls_delta"),
+                    "pct_change": deltas.get("tool_calls_pct_change"),
+                },
+                "tokens": {
+                    "before": eval_pair.before_metrics.get("tokens"),
+                    "after": eval_pair.after_metrics.get("tokens"),
+                    "delta": deltas.get("tokens_delta"),
+                    "pct_change": deltas.get("tokens_pct_change"),
+                },
+                "latency_ms": {
+                    "before": eval_pair.before_metrics.get("latency_ms"),
+                    "after": eval_pair.after_metrics.get("latency_ms"),
+                    "delta": deltas.get("latency_ms_delta"),
+                    "pct_change": deltas.get("latency_ms_pct_change"),
+                },
+                "task_result": eval_pair.task_result,
+                "regression_result": eval_pair.regression_result,
+            },
             "task_result": eval_pair.task_result,
             "regression_result": eval_pair.regression_result,
             "evaluated_at": eval_pair.evaluated_at,
@@ -618,3 +642,72 @@ def execute_evaluation(
             "status": "ERROR",
             "error": str(exc),
         }
+
+
+def build_before_after_panel(evaluation: Union[EvaluationPair, dict[str, Any]]) -> dict[str, Any]:
+    """Extract a directly renderable Before/After payload for Member 4 UI panels.
+
+    Exposes:
+        before_run_id
+        after_run_id
+        actual tool_calls
+        actual tokens
+        actual latency
+        task result
+        regression result
+    """
+    if isinstance(evaluation, EvaluationPair):
+        before_id = evaluation.before_run_id
+        after_id = evaluation.after_run_id
+        b_metrics = evaluation.before_metrics or {}
+        a_metrics = evaluation.after_metrics or {}
+        task_res = evaluation.task_result
+        reg_res = evaluation.regression_result
+        eval_id = evaluation.evaluation_id
+        eval_at = evaluation.evaluated_at
+    elif isinstance(evaluation, dict):
+        before_id = str(evaluation.get("before_run_id", ""))
+        after_id = str(evaluation.get("after_run_id", ""))
+        metrics = evaluation.get("metrics", {})
+        b_metrics = metrics.get("before", {}) if isinstance(metrics, dict) else {}
+        a_metrics = metrics.get("after", {}) if isinstance(metrics, dict) else {}
+        task_res = str(evaluation.get("task_result", "FAIL"))
+        reg_res = str(evaluation.get("regression_result", "NOT_EVALUATED"))
+        eval_id = str(evaluation.get("evaluation_id", ""))
+        eval_at = str(evaluation.get("evaluated_at", ""))
+    else:
+        raise TypeError(f"Expected EvaluationPair or dict, got {type(evaluation).__name__}")
+
+    evaluator = BeforeAfterEvaluator()
+    deltas = evaluator.compute_deltas(b_metrics, a_metrics)
+
+    panel = {
+        "evaluation_id": eval_id,
+        "before_run_id": before_id,
+        "after_run_id": after_id,
+        "tool_calls": {
+            "before": b_metrics.get("tool_calls"),
+            "after": a_metrics.get("tool_calls"),
+            "delta": deltas.get("tool_calls_delta"),
+            "pct_change": deltas.get("tool_calls_pct_change"),
+        },
+        "tokens": {
+            "before": b_metrics.get("tokens"),
+            "after": a_metrics.get("tokens"),
+            "delta": deltas.get("tokens_delta"),
+            "pct_change": deltas.get("tokens_pct_change"),
+        },
+        "latency_ms": {
+            "before": b_metrics.get("latency_ms"),
+            "after": a_metrics.get("latency_ms"),
+            "delta": deltas.get("latency_ms_delta"),
+            "pct_change": deltas.get("latency_ms_pct_change"),
+        },
+        "task_result": task_res,
+        "regression_result": reg_res,
+        "evaluated_at": eval_at,
+    }
+
+    json.dumps(panel)
+    return panel
+

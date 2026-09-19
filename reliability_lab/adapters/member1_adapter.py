@@ -44,6 +44,7 @@ class MockMember1Agent:
             agent_version=self.version,
             prompt_version=self.prompt_version,
         )
+        tracer.record_event("user_request", request=request)
         tracer.record_event("agent_start", request=request)
 
         order_id = self._extract_order_id(request)
@@ -54,6 +55,8 @@ class MockMember1Agent:
         tool_result: Optional[dict[str, Any]] = None
 
         for attempt in range(1, max_attempts + 1):
+            if attempt > 1:
+                tracer.record_event("retry_attempt", attempt=attempt, tool="get_order")
             tracer.record_tool_call("get_order", {"order_id": order_id, "attempt": attempt})
             try:
                 result = self._call_tool(self.order_tool, order_id)

@@ -117,7 +117,8 @@ class RegressionTest:
     """Regression test definition containing scenario expectations and execution history."""
     test_id: str
     scenario: str
-    expected_behavior: str
+    expected_behavior: Union[ExpectedBehavior, str]
     latest_result: Optional[RegressionResult] = None
     history: list[RegressionResult] = field(default_factory=list)
+    replay_record_id: Optional[str] = None
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

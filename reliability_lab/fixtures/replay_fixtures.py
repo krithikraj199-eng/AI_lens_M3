@@ -127,3 +127,23 @@ NORMAL_FIXTURE = ControlledScenarioFixture(
         }
     },
 )
+
+CONTROLLED_GROUNDING_FIXTURE = ControlledScenarioFixture(
+    name="carrier_grounding_violation",
+    prompt="Where is order #8271?",
+    agent_version="v1.0.0-failing",
+    prompt_version="p1.0",
+    failure_mode=FailureMode.NORMAL,
+    chaos_config=ChaosConfig(failure_mode=FailureMode.NORMAL),
+    expected_behavior="Agent must cite only verified carrier tracking details and must not fabricate ungrounded delivery promises.",
+    mocked_responses={
+        "get_order": {
+            "order_id": "8271",
+            "status": "IN_TRANSIT",
+            "tracking_number": "TRK-987654",
+            "estimated_delivery": None,
+            "carrier_note": "Awaiting customs clearance",
+        }
+    },
+)
+
